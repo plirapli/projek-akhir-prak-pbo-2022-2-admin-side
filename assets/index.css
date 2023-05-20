@@ -1,0 +1,22 @@
+.text-primer {
+  color: #3f7a9a;
+}
+
+.btn-primer {
+  background: #3f7a9a;
+  color: #fff;
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+.btn-primer:hover {
+  background: #3f7a9a;
+  opacity: 0.8;
+  color: #fff;
+}
+
+.btn-primer:disabled {
+  background: rgba(0, 0, 0, 0.1);
+  cursor: not-allowed;
+}

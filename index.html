@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Bootstrap demo</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ"
+      crossorigin="anonymous"
+    />
+    <link rel="stylesheet" href="./assets/index.css" />
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe"
+      crossorigin="anonymous"
+      defer
+    ></script>
+  </head>
+
+  <body class="min-vh-100 p-5 d-flex flex-column align-items-center">
+    <img style="width: 480px" src="assets/yulje_logo.png" alt="" />
+    <form class="form-cari d-flex flex-column align-items-center text-center">
+      <label for="inputReg" class="text-secondary"
+        >Masukkan nomor pendaftaran</label
+      >
+      <input
+        style="width: 25rem"
+        type="text"
+        id="inputReg"
+        class="my-2 form-control fs-3 text-center"
+      />
+      <button
+        type="submit"
+        class="my-3 btn btn-light btn-primer btn-cari px-5 rounded-pill"
+        data-bs-toggle="modal"
+        data-bs-target="#exampleModal"
+        disabled
+      >
+        Cari
+      </button>
+    </form>
+
+    <!-- Modal -->
+    <div
+      class="modal fade"
+      id="exampleModal"
+      tabindex="-1"
+      aria-labelledby="exampleModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h1 class="modal-title fs-5" id="exampleModalLabel">
+              Registrasi Dokter
+            </h1>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <!-- Modal body -->
+          <div id="searchLoading" class="modal-body">
+            <div class="d-flex justify-content-center my-4">
+              <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+            </div>
+          </div>
+
+          <div id="searchNotFound" class="modal-body" style="display: none">
+            <div class="d-flex justify-content-center my-4">
+              <p class="text-danger">Pencarian tidak ditemukan.</p>
+            </div>
+          </div>
+
+          <div id="searchFound" class="modal-body" style="display: none">
+            <div class="text-center">
+              <div class="text-secondary">Antrian Anda</div>
+              <div class="fs-2 fw-bold text-primer">1994638321</div>
+            </div>
+            <table class="table info-registrasi">
+              <colgroup>
+                <col style="width: 50%" />
+                <col style="width: 50%" />
+              </colgroup>
+              <tr>
+                <th class="text-end" scope="col">Nama</th>
+                <td class="w-100 text-user">John Doe</td>
+              </tr>
+              <tr>
+                <th class="text-end" scope="col">Dokter</th>
+                <td class="w-100 text-dokter">Komang Yuda Saputra</td>
+              </tr>
+            </table>
+            <button class="w-100 btn btn-primer btn-cetak">Cetak</button>
+          </div>
+          <!-- End modal body -->
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const rootURL = 'projek-akhir-prak-pbo-admin-side'; // Ganti sesuai nama direktori projek
+      const URL = `http://localhost/${rootURL}`;
+      const baseURL = `${URL}/api/registrasi.php?function`;
+
+      const getRegisterByReg = async (reg) => {
+        const endpoint = `${baseURL}=get_by_reg_num&reg=${reg}`;
+        return fetch(endpoint)
+          .then((res) => res.json())
+          .then((data) => data);
+      };
+
+      const form = document.querySelector('.form-cari');
+      const reg = form.querySelector('#inputReg');
+
+      reg.addEventListener('keydown', (e) => {
+        const btnCari = document.querySelector('.btn-cari');
+        if (e.target.value.length < 5) {
+          btnCari.disabled = true;
+        } else {
+          btnCari.disabled = false;
+        }
+      });
+
+      form.addEventListener('submit', (e) => {
+        const loadingModal = document.querySelector('#searchLoading');
+        const foundModal = document.querySelector('#searchFound');
+        const notFoundModal = document.querySelector('#searchNotFound');
+        foundModal.style.display = 'none';
+        notFoundModal.style.display = 'none';
+        loadingModal.style.display = 'block';
+
+        getRegisterByReg(reg.value).then(({ status, data }) => {
+          if (status) {
+            loadingModal.style.display = 'none';
+            foundModal.style.display = 'block';
+          } else {
+            loadingModal.style.display = 'none';
+            notFoundModal.style.display = 'block';
+          }
+        });
+
+        e.preventDefault();
+      });
+    </script>
+  </body>
+</html>
