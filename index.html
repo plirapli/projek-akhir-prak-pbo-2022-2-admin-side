@@ -35,7 +35,7 @@
         type="submit"
         class="my-3 btn btn-light btn-primer btn-cari px-5 rounded-pill"
         data-bs-toggle="modal"
-        data-bs-target="#exampleModal"
+        data-bs-target="#modal"
         disabled
       >
         Cari
@@ -45,7 +45,7 @@
     <!-- Modal -->
     <div
       class="modal fade"
-      id="exampleModal"
+      id="modal"
       tabindex="-1"
       aria-labelledby="exampleModalLabel"
       aria-hidden="true"
@@ -81,7 +81,7 @@
           <div id="searchFound" class="modal-body" style="display: none">
             <div class="text-center">
               <div class="text-secondary">Antrian Anda</div>
-              <div class="fs-2 fw-bold text-primer">1994638321</div>
+              <div class="text-antrian fs-2 fw-bold text-primer"></div>
             </div>
             <table class="table info-registrasi">
               <colgroup>
@@ -116,10 +116,38 @@
           .then((data) => data);
       };
 
+      const getLastAntrian = async (id) => {
+        const endpoint = `${baseURL}=get_last_antrian&id_dokter=${id}`;
+        return fetch(endpoint)
+          .then((res) => res.json())
+          .then((data) => data);
+      };
+
+      const addAntrian = async (id_user, id_dokter, nomor) => {
+        const endpoint = `${baseURL}=add_antrian`;
+        return fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ id_user, id_dokter, nomor }),
+        })
+          .then((res) => res.json())
+          .then((data) => data);
+      };
+
+      const deleteRegistrasi = async (reg) => {
+        const endpoint = `${baseURL}=delete_registrasi&reg=${reg}`;
+        return fetch(endpoint, { method: 'DELETE' })
+          .then((res) => res.json())
+          .then((data) => data);
+      };
+
       const form = document.querySelector('.form-cari');
       const reg = form.querySelector('#inputReg');
 
-      reg.addEventListener('keydown', (e) => {
+      reg.addEventListener('input', (e) => {
         const btnCari = document.querySelector('.btn-cari');
         if (e.target.value.length < 5) {
           btnCari.disabled = true;
@@ -136,10 +164,53 @@
         notFoundModal.style.display = 'none';
         loadingModal.style.display = 'block';
 
+        //  Mengambil info appointment berdasar reg number
         getRegisterByReg(reg.value).then(({ status, data }) => {
           if (status) {
-            loadingModal.style.display = 'none';
-            foundModal.style.display = 'block';
+            const { id_dokter, id_user, dokter, user } = data;
+
+            // Mengambil no antrian terakhir
+            getLastAntrian(id_dokter).then(({ data }) => {
+              let { nomor } = data;
+              const nomorAntrian = foundModal.querySelector('.text-antrian');
+              const textUser = foundModal.querySelector('.text-user');
+              const textDokter = foundModal.querySelector('.text-dokter');
+              const btnCetak = foundModal.querySelector('.btn-cetak');
+
+              if (!nomor) {
+                nomor = 0;
+              }
+              nomor++;
+
+              //  Tampilin info di modal
+              nomorAntrian.innerHTML = nomor;
+              textUser.innerHTML = user;
+              textDokter.innerHTML = dokter;
+
+              loadingModal.style.display = 'none';
+              foundModal.style.display = 'block';
+
+              // Action btn cetak
+              btnCetak.addEventListener(
+                'click',
+                () => {
+                  // Ketika tombol cetak diklik otomatis menambah antrian
+                  addAntrian(id_user, id_dokter, nomor).then(({ status }) => {
+                    if (status) {
+                      // Menghapus data di tabel pendaftaran
+                      deleteRegistrasi(reg.value).then(() => {
+                        // Tutup modal
+                        const modalElement = document.getElementById('modal');
+                        const modal = bootstrap.Modal.getInstance(modalElement);
+                        modal.hide();
+                        form.reset();
+                      });
+                    }
+                  });
+                },
+                { once: true }
+              );
+            });
           } else {
             loadingModal.style.display = 'none';
             notFoundModal.style.display = 'block';
